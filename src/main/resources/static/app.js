@@ -59,7 +59,6 @@ var app = (function () {
         init: function () {
             var canvas = document.getElementById("canvas");
             ctx = canvas.getContext("2d");
-
             if (window.PointerEvent) {
                 canvas.addEventListener("pointerdown", eventHandler);
             } else {
@@ -73,7 +72,7 @@ var app = (function () {
             var pt=new Point(px,py);
             console.info("publishing point at "+pt);
             //publicar el evento
-            stompClient.send("/topic/newpoint." + topic, {}, JSON.stringify(pt));
+            stompClient.send("/app/newpoint." + topic, {}, JSON.stringify(pt));
         },
 
         disconnect: function () {
