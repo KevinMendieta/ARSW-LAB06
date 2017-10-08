@@ -4,21 +4,21 @@ var app = (function () {
         constructor(x,y){
             this.x=x;
             this.y=y;
-        }        
+        }
     }
-    
+
     var stompClient = null,
         topic;
 
-    var addPointToCanvas = function (point) {        
+    var addPointToCanvas = function (point) {
         var canvas = document.getElementById("canvas");
         var ctx = canvas.getContext("2d");
         ctx.beginPath();
         ctx.arc(point.x, point.y, 3, 0, 2 * Math.PI);
         ctx.stroke();
     };
-    
-    
+
+
     var getMousePosition = function (evt) {
         canvas = document.getElementById("canvas");
         var rect = canvas.getBoundingClientRect();
@@ -33,14 +33,26 @@ var app = (function () {
         console.info('Connecting to WS...');
         var socket = new SockJS('/stompendpoint');
         stompClient = Stomp.over(socket);
-        
+
         //subscribe to /topic/TOPICXX when connections succeed
         stompClient.connect({}, function (frame) {
             console.log('Connected: ' + frame);
-            stompClient.subscribe('/topic/newpoint.' + topic, function (eventbody) {
+            stompClient.subscribe('/topic/newpolygon.' + topic, function (eventbody) {
                 var content = JSON.parse(eventbody.body);
                 //alert("x: " + content.x + " y: "+ content.y);
-                addPointToCanvas(new Point(content.x,content.y))
+                var canvas = document.getElementById("canvas");
+                var ctx = canvas.getContext("2d");
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                ctx.beginPath();
+                ctx.moveTo(0, 0);
+                for (let i = 0; i < content.length - 1; i++){
+                    ctx.moveTo(content[i].x, content[i].y);
+                    ctx.lineTo(content[i + 1].x, content[i + 1].y);
+                }
+                ctx.moveTo(content[content.length - 1].x, content[content.length - 1].y);
+                ctx.lineTo(content[0].x, content[0].y)
+                ctx.stroke();
+                //addPointToCanvas(new Point(content.x,content.y))
             });
         });
 
@@ -51,8 +63,8 @@ var app = (function () {
         let coordinates = getMousePosition(evt);
         app.publishPoint(coordinates.x, coordinates.y);
     }
-    
-    
+
+
 
     return {
 
